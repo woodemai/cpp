@@ -13,7 +13,7 @@ constexpr size_t NUM_ROUNDS = 8;     // Количество циклов шиф
 using namespace std;
 
 // Генерация случайно 64битного ключа
-uint64_t generate_random_key()
+uint64_t get_random_key()
 {
     random_device rd;
     mt19937_64 eng(rd());
@@ -72,7 +72,7 @@ uint64_t feistel_decrypt(uint64_t block, uint64_t key)
 }
 
 // Вывод 64битного сообщения как текст в консоль
-void print_block_as_text(const string &prefix, uint64_t block)
+void print_block_to_console(const string &prefix, uint64_t block)
 {
     cout << prefix;
     for (int i = 0; i < 8; ++i)
@@ -87,7 +87,7 @@ void print_block_as_text(const string &prefix, uint64_t block)
 }
 
 // Чтение из файла, шифрование и вывод результата в консоль
-void encrypt_file(const string &input_filename, const string &output_filename, uint64_t key)
+void encrypt(const string &input_filename, const string &output_filename, uint64_t key)
 {
     ifstream input_file(input_filename, ios::binary);
     ofstream output_file(output_filename, ios::binary);
@@ -95,9 +95,9 @@ void encrypt_file(const string &input_filename, const string &output_filename, u
     uint64_t block;
     while (input_file.read(reinterpret_cast<char *>(&block), sizeof(block)))
     {
-        print_block_as_text("Encrypting block: ", block);
+        print_block_to_console("Encrypting block: ", block);
         uint64_t encrypted_block = feistel_encrypt(block, key);
-        print_block_as_text("Encrypted block: ", encrypted_block);
+        print_block_to_console("Encrypted block: ", encrypted_block);
         output_file.write(reinterpret_cast<char *>(&encrypted_block), sizeof(encrypted_block));
     }
 
@@ -106,7 +106,7 @@ void encrypt_file(const string &input_filename, const string &output_filename, u
 }
 
 // Чтение из файла, дешифрование и вывод результата в консоль
-void decrypt_file(const string &input_filename, const string &output_filename, uint64_t key)
+void decrypt(const string &input_filename, const string &output_filename, uint64_t key)
 {
     ifstream input_file(input_filename, ios::binary);
     ofstream output_file(output_filename, ios::binary);
@@ -114,9 +114,9 @@ void decrypt_file(const string &input_filename, const string &output_filename, u
     uint64_t block;
     while (input_file.read(reinterpret_cast<char *>(&block), sizeof(block)))
     {
-        print_block_as_text("Decrypting block: ", block);
+        print_block_to_console("Decrypting block: ", block);
         uint64_t decrypted_block = feistel_decrypt(block, key);
-        print_block_as_text("Decrypted block: ", decrypted_block);
+        print_block_to_console("Decrypted block: ", decrypted_block);
         output_file.write(reinterpret_cast<char *>(&decrypted_block), sizeof(decrypted_block));
     }
 
@@ -126,14 +126,13 @@ void decrypt_file(const string &input_filename, const string &output_filename, u
 
 int main()
 {
-    uint64_t key = generate_random_key();
-    string user_desktop_path = "/Users/dimak/Desktop/";
-    string input_filename = user_desktop_path + "input.bin";
-    string encrypted_filename = user_desktop_path + "encrypted.bin";
-    string decrypted_filename = user_desktop_path + "decrypted.bin";
+    uint64_t key = get_random_key();
+    string input_filename = "input.bin";
+    string encrypted_filename = "encrypted.bin";
+    string decrypted_filename = "decrypted.bin";
 
-    encrypt_file(input_filename, encrypted_filename, key);
-    decrypt_file(encrypted_filename, decrypted_filename, key);
+    encrypt(input_filename, encrypted_filename, key);
+    decrypt(encrypted_filename, decrypted_filename, key);
 
     return 0;
 }
