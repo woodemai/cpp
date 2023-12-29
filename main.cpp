@@ -12,6 +12,17 @@ constexpr size_t NUM_ROUNDS = 8;     // Количество циклов шиф
 
 using namespace std;
 
+string pad_input_text(const string& input_text)
+{
+    string padded_text = input_text;
+    size_t padding_size = 8 - (input_text.size() % 8);
+    if (padding_size != 8)
+    {
+        padded_text += string(padding_size, '\ ');
+    }
+    return padded_text;
+}
+
 // Генерация случайно 64битного ключа
 uint64_t get_random_key()
 {
@@ -89,12 +100,23 @@ void print_block_to_console(const string &prefix, uint64_t block)
 // Чтение из файла, шифрование и вывод результата в консоль
 void encrypt(const string &input_filename, const string &output_filename, uint64_t key)
 {
-    ifstream input_file(input_filename, ios::binary);
-    ofstream output_file(output_filename, ios::binary);
+    ifstream input_file(input_filename, ios::binary);  // Открытие файла в текстовом режиме
+    ofstream output_file(output_filename, ios::binary);  // Открытие файла в бинарном режиме
 
-    uint64_t block;
-    while (input_file.read(reinterpret_cast<char *>(&block), sizeof(block)))
+    // Чтение входного текста из файла
+    string input_text((istreambuf_iterator<char>(input_file)), (istreambuf_iterator<char>()));
+    // Дополнение текста пустыми символами, если необходимо
+    string padded_text = pad_input_text(input_text);
+
+    // Шифрование и запись в выходной файл
+    for (size_t i = 0; i < padded_text.size(); i += 8)
     {
+        uint64_t block = 0;
+        for (size_t j = 0; j < 8 && i + j < padded_text.size(); ++j)
+        {
+            block |= static_cast<uint64_t>(padded_text[i + j]) << (8 * j);
+        }
+
         print_block_to_console("Encrypting block: ", block);
         uint64_t encrypted_block = feistel_encrypt(block, key);
         print_block_to_console("Encrypted block: ", encrypted_block);
